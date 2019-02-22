@@ -85,7 +85,7 @@ PluginImporter:
       settings:
         AddToEmbeddedBinaries: false
         CompileFlags: 
-        FrameworkDependencies: 
+        FrameworkDependencies: WebKit;
   userData: 
   assetBundleName: 
   assetBundleVariant: 

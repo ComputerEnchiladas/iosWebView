@@ -16,6 +16,12 @@ public class PluginTest : MonoBehaviour
     [DllImport("__Internal")]
     private static extern void IOScreateNativeAlert(string[] strings, int stringCount, intCallback callback);
 
+    [DllImport("__Internal")]
+    private static extern void IOSshowWebView(string URL, int pixelSpace);
+
+    [DllImport("__Internal")]
+    private static extern void IOShideWebView(intCallback callback);
+
 #endif
 
     // Use this for initialization
@@ -75,5 +81,53 @@ public class PluginTest : MonoBehaviour
         else
             Debug.LogWarning("Can only display alert on iOS");
         Debug.Log("Alert shown after: " + getElapsedTime() + " seconds");
+    }
+
+    public RectTransform webPanel;
+    public RectTransform buttonStrip;
+    public void OpenWebView(string url, int pixelShift)
+    {
+        if (Application.platform == RuntimePlatform.IPhonePlayer)
+        {
+            IOSshowWebView(url, pixelShift);
+        }
+    }
+
+    public void CloseWebView(System.Action<int> closeComplete)
+    {
+        onCloseWebView = closeComplete;
+        if (Application.platform == RuntimePlatform.IPhonePlayer)
+        {
+            IOShideWebView(closeWebViewHandler);
+        }
+        else
+            closeWebViewHandler(0);
+    }
+
+    [AOT.MonoPInvokeCallback(typeof(intCallback))]
+    static void closeWebViewHandler(int result)
+    {
+        if (onCloseWebView != null)
+            onCloseWebView(result);
+        onCloseWebView = null;
+    }
+    static System.Action<int> onCloseWebView;
+
+
+
+    public void OpenWebViewTapped()
+    {
+        Canvas parentCanvas = buttonStrip.GetComponentInParent<Canvas>();
+        int stripHeight = (int)(buttonStrip.rect.height * parentCanvas.scaleFactor + 0.5f);
+        webPanel.gameObject.SetActive(true);
+        OpenWebView("http://www.cwgtech.com", stripHeight);
+    }
+
+    public void CloseWebViewTapped()
+    {
+        CloseWebView((int result) =>
+        {
+            webPanel.gameObject.SetActive(false);
+        });
     }
 }
